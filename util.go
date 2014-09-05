@@ -77,6 +77,9 @@ func SparseTemplate(name, text string) *Template {
 
 // Execute applies a parsed template to specified data object and returns it
 // output as return value.
+//
+// Default behaviour can be anytime restored by using `t.Template.Execute()`
+// call.
 func (t *Template) Execute(v interface{}) (string, error) {
 	buf := &bytes.Buffer{}
 	err := t.Template.Execute(buf, v)
