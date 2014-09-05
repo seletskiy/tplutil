@@ -6,7 +6,7 @@
 //	var myTpl = template.Must(template.New("name").Parse(
 //		"Some list:\n" +
 //			"{{range .}}" +
-//			"# {{.}}" +
+//			"# {{.}}\n" +
 //			"{{end}}")
 //
 // `gofmt` will ruin any attempt to format code above.
@@ -17,7 +17,7 @@
 //		Some list:{{"\n"}}
 //
 //		{{range .}}
-//			# {{.}}
+//			# {{.}}{{"\n"}}
 //		{{end}}
 //	`)
 //
