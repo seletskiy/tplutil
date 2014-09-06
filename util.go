@@ -7,40 +7,40 @@
 //		"Some list:\n" +
 //			"{{range .}}" +
 //			"# {{.}}\n" +
-//			"{{end}}")
+//			"{{end}}"))
 //
 // `gofmt` will ruin any attempt to format code above.
 //
 // And with tplutil:
 //
-//	var myTpl = tplutil.SparseTemplate("name", `
+//	var myTpl = template.Must(template.New("name").Parse(tplutil.Strip(`
 //		Some list:{{"\n"}}
 //
 //		{{range .}}
 //			# {{.}}{{"\n"}}
 //		{{end}}
-//	`)
+//	`)))
 //
 // Output will be exactly the same.
 //
 // Any indenting whitespaces and newlines will be ignored. If must, they
-// should be specified by using syntax `{{" "}}` or `{{"\n"}}`.
+// should be specified by using syntax
+//
+//	`{{" "}}` or `{{"\n"}}`.
 //
 // It also provide `{{last}}` function to check on last element of pipeline:
 //
-//	var myTpl = tplutil.SparseTemplate("name", `
-//		Some list:{{"\n"}}
+//	var myTpl = template.Must(template.New("asd").Funcs(tplutil.Last).Parse(
+//		tplutil.Strip(`
+//			Some list:{{"\n"}}
 //
-//		{{range $i, $_ := .}}
-//			{{.}}
-//			{{if last $i $ | not}}
-//				{{"\n"}}{{/* do not append newline to the last element */}}
+//			{{range $i, $_ := .}}
+//				{{.}}
+//				{{if last $i $ | not}}
+//					{{"\n"}}{{/* do not append newline to the last element */}}
+//				{{end}}
 //			{{end}}
-//		{{end}}
-//	`)
-//
-// Behaviour of `Execute` is changed too: it will return `string` as template
-// execution result.
+//		`)
 //
 package tplutil
 
@@ -51,42 +51,24 @@ import (
 	"text/template"
 )
 
-type Template struct {
-	*template.Template
-}
-
 var reInsignificantWhitespace = regexp.MustCompile(`(?m)\n?^\s*`)
 
-// SparseTemplate constructs template from "sparse" variant, trimming all
-// insignificant indent whitespaces and newlines.
-func SparseTemplate(name, text string) *Template {
-	stripped := reInsignificantWhitespace.ReplaceAllString(text, ``)
-
-	funcs := template.FuncMap{
-		"last": func(x int, a interface{}) bool {
-			return x == reflect.ValueOf(a).Len()-1
-		},
-	}
-
-	tpl := &Template{
-		template.Must(template.New("comment").Funcs(funcs).Parse(stripped)),
-	}
-
-	return tpl
+var Last = template.FuncMap{
+	"last": func(x int, a interface{}) bool {
+		return x == reflect.ValueOf(a).Len()-1
+	},
 }
 
-// Execute applies a parsed template to specified data object and returns it
-// output as return value.
-//
-// Default behaviour can be anytime restored by using `t.Template.Execute()`
-// call.
-func (t *Template) Execute(v interface{}) (string, error) {
-	buf := &bytes.Buffer{}
-	err := t.Template.Execute(buf, v)
+func Strip(text string) string {
+	return reInsignificantWhitespace.ReplaceAllString(text, ``)
+}
 
-	if err != nil {
-		panic(err)
-	}
+// ExecuteToString applies a parsed template to specified data object and
+// returns it output as return value. It can return partial result if
+// execution can't be proceed because of error.
+func ExecuteToString(tpl *template.Template, v interface{}) (string, error) {
+	buf := &bytes.Buffer{}
+	err := tpl.Execute(buf, v)
 
 	return buf.String(), err
 }
