@@ -36,11 +36,11 @@
 //
 //			{{range $i, $_ := .}}
 //				{{.}}
-//				{{if last $i $ | not}}
+//				{{if not (last $i $)}}
 //					{{"\n"}}{{/* do not append newline to the last element */}}
 //				{{end}}
 //			{{end}}
-//		`)
+//		`))
 //
 package tplutil
 
